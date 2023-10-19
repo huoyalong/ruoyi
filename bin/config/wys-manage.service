@@ -1,0 +1,8 @@
+[Unit]
+Description=wys-manage
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStart=/bin/java -jar -Ddruid.mysql.usePingMethod=false /root/jars/wys-manage.jar --spring.profiles.active=prod
+[Install]
+WantedBy=multi-user.target
