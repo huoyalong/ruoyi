@@ -16,7 +16,7 @@ jobs:
           node-version: '16'
       - name: Build
         run: |
-          cd ui
+          cd ruoyi-ui
           npm ci
           npm run build:prod
       - name: Upload dist
