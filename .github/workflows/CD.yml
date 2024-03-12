@@ -35,7 +35,6 @@ jobs:
           source: "ruoyi-ui/dist/*"
           target: "/home/actions_test/front"
           strip_components: 2
-
 #
 #  back-end-ci:
 #    runs-on: ubuntu-latest
