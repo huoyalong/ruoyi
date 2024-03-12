@@ -1,0 +1,10 @@
+[Unit]
+Description=ruoyi
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStart=/usr/bin/java -jar /home/actions_test/end/ruoyi.jar
+
+[Install]
+WantedBy=multi-user.target
