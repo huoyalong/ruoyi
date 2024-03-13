@@ -48,7 +48,7 @@ jobs:
           distribution: 'adopt'
       - name: Build with Maven
         run: |
-          mvn -B clean package -T 16C -DskipTests
+          mvn -B package
       - name: Upload jar
         uses: appleboy/scp-action@master
         with:
