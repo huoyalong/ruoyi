@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
-      - name: Setpu node
-        uses: actions/setup-node@v2
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
       - name: Build
@@ -48,7 +48,7 @@ jobs:
           distribution: 'adopt'
       - name: Build with Maven
         run: |
-          mvn clean package
+          mvn clean package -T 4C -DskipTests
       - name: Upload jar
         uses: appleboy/scp-action@master
         with:
