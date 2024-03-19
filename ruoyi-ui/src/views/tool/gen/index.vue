@@ -41,13 +41,17 @@
           plain
           icon="el-icon-download"
           size="mini"
+<<<<<<< HEAD
           :disabled="multiple"
+=======
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
           @click="handleGenTable"
           v-hasPermi="['tool:gen:code']"
         >生成</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
+<<<<<<< HEAD
           type="primary"
           plain
           icon="el-icon-plus"
@@ -58,6 +62,8 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
+=======
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
           type="info"
           plain
           icon="el-icon-upload"
@@ -183,14 +189,20 @@
       </el-tabs>
     </el-dialog>
     <import-table ref="import" @ok="handleQuery" />
+<<<<<<< HEAD
     <create-table ref="create" @ok="handleQuery" />
+=======
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
   </div>
 </template>
 
 <script>
 import { listTable, previewTable, delTable, genCode, synchDb } from "@/api/tool/gen";
 import importTable from "./importTable";
+<<<<<<< HEAD
 import createTable from "./createTable";
+=======
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
 import hljs from "highlight.js/lib/highlight";
 import "highlight.js/styles/github-gist.css";
 hljs.registerLanguage("java", require("highlight.js/lib/languages/java"));
@@ -202,7 +214,11 @@ hljs.registerLanguage("sql", require("highlight.js/lib/languages/sql"));
 
 export default {
   name: "Gen",
+<<<<<<< HEAD
   components: { importTable, createTable },
+=======
+  components: { importTable },
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
   data() {
     return {
       // 遮罩层
@@ -296,10 +312,13 @@ export default {
     openImportTable() {
       this.$refs.import.show();
     },
+<<<<<<< HEAD
     /** 打开创建表弹窗 */
     openCreateTable() {
       this.$refs.create.show();
     },
+=======
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
     /** 重置按钮操作 */
     resetQuery() {
       this.dateRange = [];

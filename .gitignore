@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ######################################################################
 # Build Tools
 
@@ -45,3 +46,52 @@ nbdist/
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+=======
+######################################################################
+# Build Tools
+
+.gradle
+/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+######################################################################
+# IDE
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### JRebel ###
+rebel.xml
+
+### NetBeans ###
+nbproject/private/
+build/*
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+######################################################################
+# Others
+*.log
+*.xml.versionsBackup
+*.swp
+
+!*/build/*.java
+!*/build/*.html
+!*/build/*.xml
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8

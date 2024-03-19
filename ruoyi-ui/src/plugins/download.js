@@ -1,12 +1,19 @@
 import axios from 'axios'
+<<<<<<< HEAD
 import {Loading, Message} from 'element-ui'
+=======
+import { Message } from 'element-ui'
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
 import { saveAs } from 'file-saver'
 import { getToken } from '@/utils/auth'
 import errorCode from '@/utils/errorCode'
 import { blobValidate } from "@/utils/ruoyi";
 
 const baseURL = process.env.VUE_APP_BASE_API
+<<<<<<< HEAD
 let downloadLoadingInstance;
+=======
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
 
 export default {
   name(name, isDelete = true) {
@@ -45,7 +52,10 @@ export default {
   },
   zip(url, name) {
     var url = baseURL + url
+<<<<<<< HEAD
     downloadLoadingInstance = Loading.service({ text: "正在下载数据，请稍候", spinner: "el-icon-loading", background: "rgba(0, 0, 0, 0.7)", })
+=======
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
     axios({
       method: 'get',
       url: url,
@@ -59,11 +69,14 @@ export default {
       } else {
         this.printErrMsg(res.data);
       }
+<<<<<<< HEAD
       downloadLoadingInstance.close();
     }).catch((r) => {
       console.error(r)
       Message.error('下载文件出现错误，请联系管理员！')
       downloadLoadingInstance.close();
+=======
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
     })
   },
   saveAs(text, name, opts) {

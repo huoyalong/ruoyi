@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 忽略build目录下类型为js的文件的语法检查
 build/*.js
 # 忽略src/assets目录下文件的语法检查
@@ -7,4 +8,15 @@ public
 # 忽略当前目录下为js的文件的语法检查
 *.js
 # 忽略当前目录下为vue的文件的语法检查
+=======
+# 忽略build目录下类型为js的文件的语法检查
+build/*.js
+# 忽略src/assets目录下文件的语法检查
+src/assets
+# 忽略public目录下文件的语法检查
+public
+# 忽略当前目录下为js的文件的语法检查
+*.js
+# 忽略当前目录下为vue的文件的语法检查
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
 *.vue

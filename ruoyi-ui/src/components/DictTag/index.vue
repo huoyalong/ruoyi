@@ -7,7 +7,11 @@
           :key="item.value"
           :index="index"
           :class="item.raw.cssClass"
+<<<<<<< HEAD
           >{{ item.label + ' ' }}</span
+=======
+          >{{ item.label + " " }}</span
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
         >
         <el-tag
           v-else
@@ -17,7 +21,11 @@
           :type="item.raw.listClass == 'primary' ? '' : item.raw.listClass"
           :class="item.raw.cssClass"
         >
+<<<<<<< HEAD
           {{ item.label + ' ' }}
+=======
+          {{ item.label + " " }}
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
         </el-tag>
       </template>
     </template>
@@ -40,10 +48,13 @@ export default {
     showValue: {
       type: Boolean,
       default: true,
+<<<<<<< HEAD
     },
     separator: {
       type: String,
       default: ","
+=======
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
     }
   },
   data() {
@@ -53,6 +64,7 @@ export default {
   },
   computed: {
     values() {
+<<<<<<< HEAD
       if (this.value === null || typeof this.value === 'undefined' || this.value === '') return []
       return Array.isArray(this.value) ? this.value.map(item => '' + item) : String(this.value).split(this.separator)
     },
@@ -79,6 +91,41 @@ export default {
         return pre + ' ' + cur;
       })
     },
+=======
+      if (this.value !== null && typeof this.value !== "undefined") {
+        return Array.isArray(this.value) ? this.value : [String(this.value)];
+      } else {
+        return [];
+      }
+    },
+    unmatch() {
+      this.unmatchArray = [];
+      if (this.value !== null && typeof this.value !== "undefined") {
+        // 传入值为非数组
+        if (!Array.isArray(this.value)) {
+          if (this.options.some((v) => v.value == this.value)) return false;
+          this.unmatchArray.push(this.value);
+          return true;
+        }
+        // 传入值为Array
+        this.value.forEach((item) => {
+          if (!this.options.some((v) => v.value == item))
+            this.unmatchArray.push(item);
+        });
+        return true;
+      }
+      // 没有value不显示
+      return false;
+    },
+  },
+  filters: {
+    handleArray(array) {
+      if (array.length === 0) return "";
+      return array.reduce((pre, cur) => {
+        return pre + " " + cur;
+      })
+    }
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
   }
 };
 </script>

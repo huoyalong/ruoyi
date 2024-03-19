@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <template>
   <div class="app-container home">
     <el-row :gutter="20">
@@ -1065,3 +1066,11 @@ export default {
 }
 </style>
 
+=======
+<template>
+  <div class="app-container home">
+    <p style="font-family: 楷体; font-size: 30px; margin: 0 auto">这是首页</p>
+  </div>
+</template>
+
+>>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
