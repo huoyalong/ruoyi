@@ -1,24 +1,19 @@
-name: hyl_ry_github_action_test
+name: CD
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-
-permissions:
-  contents: read
+    branches: [ master ]
 
 jobs:
-  front-end-ci:
+  Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout source
         uses: actions/checkout@v3
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: '16'
       - name: Build
         run: |
           cd ruoyi-ui
@@ -30,7 +25,7 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          script: rm -rf /usr/share/wys-manage-ui
+          script: rm -rf /home/actions_test/front
       - name: Upload dist
         uses: appleboy/scp-action@master
         with:
@@ -38,7 +33,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "ruoyi-ui/dist/*"
-          target: "/www/server/front_end"
+          target: "/home/actions_test/front"
           strip_components: 2
 
   back-end-ci:
@@ -53,15 +48,15 @@ jobs:
           distribution: 'adopt'
       - name: Build with Maven
         run: |
-          mvn clean package
-      - name: Upload dist
+          mvn -B package
+      - name: Upload jar
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "ruoyi-admin/target/ruoyi-admin.jar"
-          target: "/www/server/back_end/jars"
+          target: "/home/actions_test/end"
           strip_components: 2
       - name: Rename jar file
         uses: appleboy/ssh-action@master
@@ -70,50 +65,52 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            mv -f /root/jars/ruoyi-admin.jar /root/jars/wys-manage.jar
+            mv -f /home/actions_test/end/ruoyi-admin.jar /home/actions_test/end/ruoyi.jar
 
-  serve:
-    runs-on: ubuntu-latest
-    needs: [front-end-ci, back-end-ci]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Upload Nginx config
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "bin/config/nginx.conf"
-          target: "/etc/nginx/"
-          strip_components: 2
-      - name: Upload service Nginx config
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "bin/config/wys.manage.nginx.http.conf"
-          target: "/etc/nginx/conf.d/"
-          strip_components: 2
-      - name: Upload Systemd config
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "bin/config/wys-manage.service"
-          target: "/usr/lib/systemd/system/"
-          strip_components: 2
-      - name: Restart service
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            systemctl daemon-reload
-            systemctl stop hyl-ry.service
-            systemctl start hyl-ry.service
-            systemctl stop nginx.service
-            systemctl start nginx.service
+#
+#
+#  serve:
+#    runs-on: ubuntu-latest
+#    needs: [ front-end-ci, back-end-ci ]
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+##      - name: Upload Nginx config
+##        uses: appleboy/scp-action@master
+##        with:
+##          host: ${{ secrets.SERVER_IP }}
+##          username: ${{ secrets.SERVER_USERNAME }}
+##          key: ${{ secrets.SERVER_SSH_KEY }}
+##          source: "bin/config/nginx.conf"
+##          target: "/etc/nginx/"
+##          strip_components: 2
+##      - name: Upload service Nginx config
+##        uses: appleboy/scp-action@master
+##        with:
+##          host: ${{ secrets.SERVER_IP }}
+##          username: ${{ secrets.SERVER_USERNAME }}
+##          key: ${{ secrets.SERVER_SSH_KEY }}
+##          source: "bin/config/wys.manage.nginx.http.conf"
+##          target: "/etc/nginx/conf.d/"
+##          strip_components: 2
+#      - name: Upload Systemd config
+#        uses: appleboy/scp-action@master
+#        with:
+#          host: ${{ secrets.SERVER_IP }}
+#          username: ${{ secrets.SERVER_USERNAME }}
+#          key: ${{ secrets.SERVER_SSH_KEY }}
+#          source: "bin/config/my.service"
+#          target: "/etc/systemd/system/"
+#          strip_components: 2
+#      - name: Restart service
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.SERVER_IP }}
+#          username: ${{ secrets.SERVER_USERNAME }}
+#          key: ${{ secrets.SERVER_SSH_KEY }}
+#          script: |
+#            systemctl daemon-reload
+#            systemctl stop my.service
+#            systemctl start my.service
+#            systemctl stop nginx.service
+#            systemctl start nginx.service
