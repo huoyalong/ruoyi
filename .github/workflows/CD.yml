@@ -68,6 +68,7 @@ jobs:
             mv -f /home/actions_test/end/ruoyi-admin.jar /home/actions_test/end/ruoyi.jar
             
             
+            
 
 #
 #
