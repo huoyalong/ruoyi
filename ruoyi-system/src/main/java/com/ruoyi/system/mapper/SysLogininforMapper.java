@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 package com.ruoyi.system.mapper;
 
 import java.util.List;
@@ -29,10 +28,10 @@ public interface SysLogininforMapper
     /**
      * 批量删除系统登录日志
      * 
-     * @param infoIds 需要删除的登录日志ID
+     * @param ids 需要删除的数据
      * @return 结果
      */
-    public int deleteLogininforByIds(Long[] infoIds);
+    public int deleteLogininforByIds(String[] ids);
 
     /**
      * 清空系统登录日志
@@ -41,47 +40,3 @@ public interface SysLogininforMapper
      */
     public int cleanLogininfor();
 }
-=======
-package com.ruoyi.system.mapper;
-
-import java.util.List;
-import com.ruoyi.system.domain.SysLogininfor;
-
-/**
- * 系统访问日志情况信息 数据层
- * 
- * @author ruoyi
- */
-public interface SysLogininforMapper
-{
-    /**
-     * 新增系统登录日志
-     * 
-     * @param logininfor 访问日志对象
-     */
-    public void insertLogininfor(SysLogininfor logininfor);
-
-    /**
-     * 查询系统登录日志集合
-     * 
-     * @param logininfor 访问日志对象
-     * @return 登录记录集合
-     */
-    public List<SysLogininfor> selectLogininforList(SysLogininfor logininfor);
-
-    /**
-     * 批量删除系统登录日志
-     * 
-     * @param infoIds 需要删除的登录日志ID
-     * @return 结果
-     */
-    public int deleteLogininforByIds(Long[] infoIds);
-
-    /**
-     * 清空系统登录日志
-     * 
-     * @return 结果
-     */
-    public int cleanLogininfor();
-}
->>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8

@@ -1,23 +1,21 @@
-<<<<<<< HEAD
 package com.ruoyi.web.controller.system;
 
 import java.util.List;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.Ztree;
 import com.ruoyi.common.core.domain.entity.SysDept;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.StringUtils;
@@ -28,70 +26,87 @@ import com.ruoyi.system.service.ISysDeptService;
  * 
  * @author ruoyi
  */
-@RestController
+@Controller
 @RequestMapping("/system/dept")
 public class SysDeptController extends BaseController
 {
+    private String prefix = "system/dept";
+
     @Autowired
     private ISysDeptService deptService;
 
-    /**
-     * 获取部门列表
-     */
-    @PreAuthorize("@ss.hasPermi('system:dept:list')")
-    @GetMapping("/list")
-    public AjaxResult list(SysDept dept)
+    @RequiresPermissions("system:dept:view")
+    @GetMapping()
+    public String dept()
     {
-        List<SysDept> depts = deptService.selectDeptList(dept);
-        return success(depts);
+        return prefix + "/dept";
     }
 
-    /**
-     * 查询部门列表（排除节点）
-     */
-    @PreAuthorize("@ss.hasPermi('system:dept:list')")
-    @GetMapping("/list/exclude/{deptId}")
-    public AjaxResult excludeChild(@PathVariable(value = "deptId", required = false) Long deptId)
+    @RequiresPermissions("system:dept:list")
+    @PostMapping("/list")
+    @ResponseBody
+    public List<SysDept> list(SysDept dept)
     {
-        List<SysDept> depts = deptService.selectDeptList(new SysDept());
-        depts.removeIf(d -> d.getDeptId().intValue() == deptId || ArrayUtils.contains(StringUtils.split(d.getAncestors(), ","), deptId + ""));
-        return success(depts);
-    }
-
-    /**
-     * 根据部门编号获取详细信息
-     */
-    @PreAuthorize("@ss.hasPermi('system:dept:query')")
-    @GetMapping(value = "/{deptId}")
-    public AjaxResult getInfo(@PathVariable Long deptId)
-    {
-        deptService.checkDeptDataScope(deptId);
-        return success(deptService.selectDeptById(deptId));
+        List<SysDept> deptList = deptService.selectDeptList(dept);
+        return deptList;
     }
 
     /**
      * 新增部门
      */
-    @PreAuthorize("@ss.hasPermi('system:dept:add')")
+    @GetMapping("/add/{parentId}")
+    public String add(@PathVariable("parentId") Long parentId, ModelMap mmap)
+    {
+        if (!getSysUser().isAdmin())
+        {
+            parentId = getSysUser().getDeptId();
+        }
+        mmap.put("dept", deptService.selectDeptById(parentId));
+        return prefix + "/add";
+    }
+
+    /**
+     * 新增保存部门
+     */
     @Log(title = "部门管理", businessType = BusinessType.INSERT)
-    @PostMapping
-    public AjaxResult add(@Validated @RequestBody SysDept dept)
+    @RequiresPermissions("system:dept:add")
+    @PostMapping("/add")
+    @ResponseBody
+    public AjaxResult addSave(@Validated SysDept dept)
     {
         if (!deptService.checkDeptNameUnique(dept))
         {
             return error("新增部门'" + dept.getDeptName() + "'失败，部门名称已存在");
         }
-        dept.setCreateBy(getUsername());
+        dept.setCreateBy(getLoginName());
         return toAjax(deptService.insertDept(dept));
     }
 
     /**
      * 修改部门
      */
-    @PreAuthorize("@ss.hasPermi('system:dept:edit')")
+    @RequiresPermissions("system:dept:edit")
+    @GetMapping("/edit/{deptId}")
+    public String edit(@PathVariable("deptId") Long deptId, ModelMap mmap)
+    {
+        deptService.checkDeptDataScope(deptId);
+        SysDept dept = deptService.selectDeptById(deptId);
+        if (StringUtils.isNotNull(dept) && 100L == deptId)
+        {
+            dept.setParentName("无");
+        }
+        mmap.put("dept", dept);
+        return prefix + "/edit";
+    }
+
+    /**
+     * 修改保存部门
+     */
     @Log(title = "部门管理", businessType = BusinessType.UPDATE)
-    @PutMapping
-    public AjaxResult edit(@Validated @RequestBody SysDept dept)
+    @RequiresPermissions("system:dept:edit")
+    @PostMapping("/edit")
+    @ResponseBody
+    public AjaxResult editSave(@Validated SysDept dept)
     {
         Long deptId = dept.getDeptId();
         deptService.checkDeptDataScope(deptId);
@@ -105,163 +120,68 @@ public class SysDeptController extends BaseController
         }
         else if (StringUtils.equals(UserConstants.DEPT_DISABLE, dept.getStatus()) && deptService.selectNormalChildrenDeptById(deptId) > 0)
         {
-            return error("该部门包含未停用的子部门！");
+            return AjaxResult.error("该部门包含未停用的子部门！");
         }
-        dept.setUpdateBy(getUsername());
+        dept.setUpdateBy(getLoginName());
         return toAjax(deptService.updateDept(dept));
     }
 
     /**
-     * 删除部门
+     * 删除
      */
-    @PreAuthorize("@ss.hasPermi('system:dept:remove')")
     @Log(title = "部门管理", businessType = BusinessType.DELETE)
-    @DeleteMapping("/{deptId}")
-    public AjaxResult remove(@PathVariable Long deptId)
+    @RequiresPermissions("system:dept:remove")
+    @GetMapping("/remove/{deptId}")
+    @ResponseBody
+    public AjaxResult remove(@PathVariable("deptId") Long deptId)
     {
-        if (deptService.hasChildByDeptId(deptId))
+        if (deptService.selectDeptCount(deptId) > 0)
         {
-            return warn("存在下级部门,不允许删除");
+            return AjaxResult.warn("存在下级部门,不允许删除");
         }
         if (deptService.checkDeptExistUser(deptId))
         {
-            return warn("部门存在用户,不允许删除");
+            return AjaxResult.warn("部门存在用户,不允许删除");
         }
         deptService.checkDeptDataScope(deptId);
         return toAjax(deptService.deleteDeptById(deptId));
     }
-}
-=======
-package com.ruoyi.web.controller.system;
-
-import java.util.List;
-import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.ruoyi.common.annotation.Log;
-import com.ruoyi.common.constant.UserConstants;
-import com.ruoyi.common.core.controller.BaseController;
-import com.ruoyi.common.core.domain.AjaxResult;
-import com.ruoyi.common.core.domain.entity.SysDept;
-import com.ruoyi.common.enums.BusinessType;
-import com.ruoyi.common.utils.StringUtils;
-import com.ruoyi.system.service.ISysDeptService;
-
-/**
- * 部门信息
- * 
- * @author ruoyi
- */
-@RestController
-@RequestMapping("/system/dept")
-public class SysDeptController extends BaseController
-{
-    @Autowired
-    private ISysDeptService deptService;
 
     /**
-     * 获取部门列表
+     * 校验部门名称
      */
-    @PreAuthorize("@ss.hasPermi('system:dept:list')")
-    @GetMapping("/list")
-    public AjaxResult list(SysDept dept)
+    @PostMapping("/checkDeptNameUnique")
+    @ResponseBody
+    public boolean checkDeptNameUnique(SysDept dept)
     {
-        List<SysDept> depts = deptService.selectDeptList(dept);
-        return success(depts);
+        return deptService.checkDeptNameUnique(dept);
     }
 
     /**
-     * 查询部门列表（排除节点）
+     * 选择部门树
+     * 
+     * @param deptId 部门ID
+     * @param excludeId 排除ID
      */
-    @PreAuthorize("@ss.hasPermi('system:dept:list')")
-    @GetMapping("/list/exclude/{deptId}")
-    public AjaxResult excludeChild(@PathVariable(value = "deptId", required = false) Long deptId)
+    @GetMapping(value = { "/selectDeptTree/{deptId}", "/selectDeptTree/{deptId}/{excludeId}" })
+    public String selectDeptTree(@PathVariable("deptId") Long deptId,
+            @PathVariable(value = "excludeId", required = false) Long excludeId, ModelMap mmap)
     {
-        List<SysDept> depts = deptService.selectDeptList(new SysDept());
-        depts.removeIf(d -> d.getDeptId().intValue() == deptId || ArrayUtils.contains(StringUtils.split(d.getAncestors(), ","), deptId + ""));
-        return success(depts);
+        mmap.put("dept", deptService.selectDeptById(deptId));
+        mmap.put("excludeId", excludeId);
+        return prefix + "/tree";
     }
 
     /**
-     * 根据部门编号获取详细信息
+     * 加载部门列表树（排除下级）
      */
-    @PreAuthorize("@ss.hasPermi('system:dept:query')")
-    @GetMapping(value = "/{deptId}")
-    public AjaxResult getInfo(@PathVariable Long deptId)
+    @GetMapping("/treeData/{excludeId}")
+    @ResponseBody
+    public List<Ztree> treeDataExcludeChild(@PathVariable(value = "excludeId", required = false) Long excludeId)
     {
-        deptService.checkDeptDataScope(deptId);
-        return success(deptService.selectDeptById(deptId));
-    }
-
-    /**
-     * 新增部门
-     */
-    @PreAuthorize("@ss.hasPermi('system:dept:add')")
-    @Log(title = "部门管理", businessType = BusinessType.INSERT)
-    @PostMapping
-    public AjaxResult add(@Validated @RequestBody SysDept dept)
-    {
-        if (!deptService.checkDeptNameUnique(dept))
-        {
-            return error("新增部门'" + dept.getDeptName() + "'失败，部门名称已存在");
-        }
-        dept.setCreateBy(getUsername());
-        return toAjax(deptService.insertDept(dept));
-    }
-
-    /**
-     * 修改部门
-     */
-    @PreAuthorize("@ss.hasPermi('system:dept:edit')")
-    @Log(title = "部门管理", businessType = BusinessType.UPDATE)
-    @PutMapping
-    public AjaxResult edit(@Validated @RequestBody SysDept dept)
-    {
-        Long deptId = dept.getDeptId();
-        deptService.checkDeptDataScope(deptId);
-        if (!deptService.checkDeptNameUnique(dept))
-        {
-            return error("修改部门'" + dept.getDeptName() + "'失败，部门名称已存在");
-        }
-        else if (dept.getParentId().equals(deptId))
-        {
-            return error("修改部门'" + dept.getDeptName() + "'失败，上级部门不能是自己");
-        }
-        else if (StringUtils.equals(UserConstants.DEPT_DISABLE, dept.getStatus()) && deptService.selectNormalChildrenDeptById(deptId) > 0)
-        {
-            return error("该部门包含未停用的子部门！");
-        }
-        dept.setUpdateBy(getUsername());
-        return toAjax(deptService.updateDept(dept));
-    }
-
-    /**
-     * 删除部门
-     */
-    @PreAuthorize("@ss.hasPermi('system:dept:remove')")
-    @Log(title = "部门管理", businessType = BusinessType.DELETE)
-    @DeleteMapping("/{deptId}")
-    public AjaxResult remove(@PathVariable Long deptId)
-    {
-        if (deptService.hasChildByDeptId(deptId))
-        {
-            return warn("存在下级部门,不允许删除");
-        }
-        if (deptService.checkDeptExistUser(deptId))
-        {
-            return warn("部门存在用户,不允许删除");
-        }
-        deptService.checkDeptDataScope(deptId);
-        return toAjax(deptService.deleteDeptById(deptId));
+        SysDept dept = new SysDept();
+        dept.setExcludeId(excludeId);
+        List<Ztree> ztrees = deptService.selectDeptTreeExcludeChild(dept);
+        return ztrees;
     }
 }
->>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8

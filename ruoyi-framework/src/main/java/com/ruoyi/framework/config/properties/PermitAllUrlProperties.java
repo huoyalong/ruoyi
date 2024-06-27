@@ -1,22 +1,22 @@
-<<<<<<< HEAD
 package com.ruoyi.framework.config.properties;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import org.apache.commons.lang3.RegExUtils;
+import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import com.ruoyi.common.annotation.Anonymous;
 
 /**
@@ -27,33 +27,81 @@ import com.ruoyi.common.annotation.Anonymous;
 @Configuration
 public class PermitAllUrlProperties implements InitializingBean, ApplicationContextAware
 {
-    private static final Pattern PATTERN = Pattern.compile("\\{(.*?)\\}");
+    private List<String> urls = new ArrayList<>();
 
     private ApplicationContext applicationContext;
 
-    private List<String> urls = new ArrayList<>();
-
-    public String ASTERISK = "*";
-
     @Override
-    public void afterPropertiesSet()
+    public void afterPropertiesSet() throws Exception
     {
-        RequestMappingHandlerMapping mapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
-        Map<RequestMappingInfo, HandlerMethod> map = mapping.getHandlerMethods();
+        Map<String, Object> controllers = applicationContext.getBeansWithAnnotation(Controller.class);
+        for (Object bean : controllers.values())
+        {
+            if (!(bean instanceof Advised))
+            {
+                continue;
+            }
+            Class<?> beanClass = ((Advised) bean).getTargetSource().getTarget().getClass();
+            RequestMapping base = beanClass.getAnnotation(RequestMapping.class);
+            String[] baseUrl = {};
+            if (Objects.nonNull(base))
+            {
+                baseUrl = base.value();
+            }
+            Method[] methods = beanClass.getDeclaredMethods();
+            for (Method method : methods)
+            {
+                if (method.isAnnotationPresent(Anonymous.class) && method.isAnnotationPresent(RequestMapping.class))
+                {
+                    RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
+                    String[] uri = requestMapping.value();
+                    urls.addAll(rebuildUrl(baseUrl, uri));
+                }
+                else if (method.isAnnotationPresent(Anonymous.class) && method.isAnnotationPresent(GetMapping.class))
+                {
+                    GetMapping requestMapping = method.getAnnotation(GetMapping.class);
+                    String[] uri = requestMapping.value();
+                    urls.addAll(rebuildUrl(baseUrl, uri));
+                }
+                else if (method.isAnnotationPresent(Anonymous.class) && method.isAnnotationPresent(PostMapping.class))
+                {
+                    PostMapping requestMapping = method.getAnnotation(PostMapping.class);
+                    String[] uri = requestMapping.value();
+                    urls.addAll(rebuildUrl(baseUrl, uri));
+                }
+                else if (method.isAnnotationPresent(Anonymous.class) && method.isAnnotationPresent(PutMapping.class))
+                {
+                    PutMapping requestMapping = method.getAnnotation(PutMapping.class);
+                    String[] uri = requestMapping.value();
+                    urls.addAll(rebuildUrl(baseUrl, uri));
+                }
+                else if (method.isAnnotationPresent(Anonymous.class) && method.isAnnotationPresent(DeleteMapping.class))
+                {
+                    DeleteMapping requestMapping = method.getAnnotation(DeleteMapping.class);
+                    String[] uri = requestMapping.value();
+                    urls.addAll(rebuildUrl(baseUrl, uri));
+                }
+            }
 
-        map.keySet().forEach(info -> {
-            HandlerMethod handlerMethod = map.get(info);
+        }
+    }
 
-            // 获取方法上边的注解 替代path variable 为 *
-            Anonymous method = AnnotationUtils.findAnnotation(handlerMethod.getMethod(), Anonymous.class);
-            Optional.ofNullable(method).ifPresent(anonymous -> Objects.requireNonNull(info.getPatternsCondition().getPatterns())
-                    .forEach(url -> urls.add(RegExUtils.replaceAll(url, PATTERN, ASTERISK))));
+    private List<String> rebuildUrl(String[] bases, String[] uris)
+    {
+        List<String> urls = new ArrayList<>();
+        for (String base : bases)
+        {
+            for (String uri : uris)
+            {
+                urls.add(prefix(base) + prefix(uri));
+            }
+        }
+        return urls;
+    }
 
-            // 获取类上边的注解, 替代path variable 为 *
-            Anonymous controller = AnnotationUtils.findAnnotation(handlerMethod.getBeanType(), Anonymous.class);
-            Optional.ofNullable(controller).ifPresent(anonymous -> Objects.requireNonNull(info.getPatternsCondition().getPatterns())
-                    .forEach(url -> urls.add(RegExUtils.replaceAll(url, PATTERN, ASTERISK))));
-        });
+    private String prefix(String seg)
+    {
+        return seg.startsWith("/") ? seg : "/" + seg;
     }
 
     @Override
@@ -72,78 +120,3 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
         this.urls = urls;
     }
 }
-=======
-package com.ruoyi.framework.config.properties;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import org.apache.commons.lang3.RegExUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import com.ruoyi.common.annotation.Anonymous;
-
-/**
- * 设置Anonymous注解允许匿名访问的url
- * 
- * @author ruoyi
- */
-@Configuration
-public class PermitAllUrlProperties implements InitializingBean, ApplicationContextAware
-{
-    private static final Pattern PATTERN = Pattern.compile("\\{(.*?)\\}");
-
-    private ApplicationContext applicationContext;
-
-    private List<String> urls = new ArrayList<>();
-
-    public String ASTERISK = "*";
-
-    @Override
-    public void afterPropertiesSet()
-    {
-        RequestMappingHandlerMapping mapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
-        Map<RequestMappingInfo, HandlerMethod> map = mapping.getHandlerMethods();
-
-        map.keySet().forEach(info -> {
-            HandlerMethod handlerMethod = map.get(info);
-
-            // 获取方法上边的注解 替代path variable 为 *
-            Anonymous method = AnnotationUtils.findAnnotation(handlerMethod.getMethod(), Anonymous.class);
-            Optional.ofNullable(method).ifPresent(anonymous -> Objects.requireNonNull(info.getPatternsCondition().getPatterns())
-                    .forEach(url -> urls.add(RegExUtils.replaceAll(url, PATTERN, ASTERISK))));
-
-            // 获取类上边的注解, 替代path variable 为 *
-            Anonymous controller = AnnotationUtils.findAnnotation(handlerMethod.getBeanType(), Anonymous.class);
-            Optional.ofNullable(controller).ifPresent(anonymous -> Objects.requireNonNull(info.getPatternsCondition().getPatterns())
-                    .forEach(url -> urls.add(RegExUtils.replaceAll(url, PATTERN, ASTERISK))));
-        });
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException
-    {
-        this.applicationContext = context;
-    }
-
-    public List<String> getUrls()
-    {
-        return urls;
-    }
-
-    public void setUrls(List<String> urls)
-    {
-        this.urls = urls;
-    }
-}
->>>>>>> 9de45e8c0a3f3bbe1a484d49088fca417a2ee0d8
